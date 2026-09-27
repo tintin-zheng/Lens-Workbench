@@ -4,7 +4,7 @@ header { display:flex; justify-content:space-between; align-items:flex-end; gap:
 .switch-identity-link { margin-top:10px; padding:0; border:0; color:#9b9a97; background:transparent; font-size:11px; }
 .switch-identity-link:hover { color:#37352f; text-decoration:underline; }
 .identity-actions { display:flex; align-items:center; gap:18px; }
-.member-manager { max-width:620px; margin:25px auto 0; }.member-manager > p { color:#787774; font-size:12px; line-height:1.6; }.member-add-form { display:flex; gap:8px; margin:20px 0; }.member-add-form input { min-width:0; flex:1; padding:10px 12px; border:1px solid #e9e9e7; border-radius:5px; background:#fff; color:#37352f; }.member-add-form button { padding:10px 14px; border:0; border-radius:5px; color:#fff; background:#37352f; font-size:12px; }.member-list { border:1px solid #e9e9e7; border-radius:6px; overflow:hidden; }.member-list > div { display:flex; align-items:center; justify-content:space-between; min-height:48px; padding:8px 13px; font-size:13px; }.member-list > div + div { border-top:1px solid #e9e9e7; }.member-list button { border:0; background:transparent; color:#eb5757; font-size:12px; }.member-list small { color:#9b9a97; }.member-error { color:#eb5757!important; }
+.member-manager { display:flex; width:min(100%,620px); flex:1; flex-direction:column; margin:25px auto 0; }.member-manager > p { color:#787774; font-size:12px; line-height:1.6; }.member-add-form { display:flex; gap:8px; margin:20px 0; }.member-add-form input { min-width:0; flex:1; padding:10px 12px; border:1px solid #e9e9e7; border-radius:5px; background:#fff; color:#37352f; }.member-add-form button { padding:10px 14px; border:0; border-radius:5px; color:#fff; background:#37352f; font-size:12px; }.member-manager > .loading { flex:1; min-height:180px; justify-content:center; padding:0; }.member-list { border:1px solid #e9e9e7; border-radius:6px; overflow:hidden; }.member-list > div { display:flex; align-items:center; justify-content:space-between; min-height:48px; padding:8px 13px; font-size:13px; }.member-list > div + div { border-top:1px solid #e9e9e7; }.member-list button { border:0; background:transparent; color:#eb5757; font-size:12px; }.member-list small { color:#9b9a97; }.member-error { color:#eb5757!important; }
 .brand { display:flex; align-items:center; gap:8px; margin:0 0 12px; color:#787774; font:500 12px/1 'DM Mono',monospace; letter-spacing:.3px; text-transform:uppercase; }
 .site-logo { display:block; width:104px; height:auto; margin:0 0 13px; }
 h1 { margin:0; color:#37352f; font-family:'Noto Serif SC',Georgia,serif; font-size:42px; line-height:1.18; letter-spacing:-2px; }
@@ -91,6 +91,7 @@ h1 { margin:0; color:#37352f; font-family:'Noto Serif SC',Georgia,serif; font-si
 
 /* 克制的动效：帮助用户感知页面层级，不影响快速操作。 */
 .view-content { position:relative; z-index:1; flex:1 0 auto; animation:viewEnter .22s cubic-bezier(.2,.75,.35,1) both; }
+.view-content:has(> .member-manager) { display:flex; min-height:0; flex-direction:column; }
 .view-content:has(> .loading) { display:flex; min-height:0; flex-direction:column; }
 .view-content:has(> .loading) > .loading { flex:1 1 auto; justify-content:center; padding:0; }
 .view-content:has(> .empty:not(.compact-empty)) { display:flex; min-height:0; flex-direction:column; }
