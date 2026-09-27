@@ -93,8 +93,7 @@ AI 助手只负责把自然语言转换成候选清单，不会听到一句话�
 │   ├── equipment-quantity.sql   # 旧数据库的库存数量迁移
 │   ├── kits.sql                 # 旧数据库的 Kit 功能迁移
 │   ├── tasks.sql                # 旧数据库的任务功能迁移
-│   ├── member-accounts.sql      # 旧数据库的成员账户迁移
-│   └── member-onboarding.sql    # 旧数据库的新手引导状态迁移
+│   └── member-accounts.sql      # 旧数据库的成员账户迁移
 ├── public/                      # favicon、站点验证文件等静态资源
 ├── staticwebapp.config.json     # Static Web Apps 路由设置
 └── .github/workflows/           # 自动部署工作流
@@ -201,8 +200,6 @@ npm install
 > `schema.sql` 只应对全新数据库执行一次。已经部署过旧版本的数据库不要重复执行；应根据缺少的功能分别执行 `equipment-quantity.sql`、`kits.sql` 或 `tasks.sql`，每个迁移文件同样只执行一次。
 
 已部署的数据库启用成员账户管理时，先执行 [`database/member-accounts.sql`](database/member-accounts.sql)。API 在有建表权限时也会尝试自动增加 `is_active` 字段；手动执行脚本可以避免权限不足导致首次登录失败。这个字段只控制登录资格，不删除历史借还或任务记录。
-
-已部署的数据库启用按账户保存的新手引导时，执行一次 [`database/member-onboarding.sql`](database/member-onboarding.sql)。API 也会尝试自动补建 `onboarding_version` 字段；手动执行可避免数据库账号没有改表权限时导致登录失败。完成或跳过引导后，同一账户换设备也不会再次自动弹出；可在“我的 → 新手引导”重新查看。
 
 ### 3. 准备 SQL 连接字符串
 
