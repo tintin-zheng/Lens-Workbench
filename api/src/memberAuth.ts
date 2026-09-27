@@ -5,7 +5,7 @@ const adminNames = () => new Set((process.env.ADMIN_MEMBER_NAMES ?? '').split(/[
 const secret = () => process.env.ADMIN_PASSWORD?.trim() ?? ''
 
 export const isAdminName = (name: string) => adminNames().has(name)
-export const adminConfigured = () => adminNames().size > 0 && secret().length >= 16
+export const adminConfigured = () => adminNames().size > 0 && secret().length >= 8
 
 export function verifyAdminPassword(password: string) {
   if (!adminConfigured()) return false

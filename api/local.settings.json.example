@@ -5,7 +5,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "SQL_CONNECTION_STRING": "Server=tcp:<server>.database.windows.net,1433;Initial Catalog=zje_lens;Persist Security Info=False;User ID=<user>;Password=<password>;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
     "ADMIN_MEMBER_NAMES": "<管理员中文姓名，多个用英文逗号分隔>",
-    "ADMIN_PASSWORD": "<至少16字符的管理员共享密码>",
+    "ADMIN_PASSWORD": "<至少8字符的管理员共享密码>",
     "AZURE_SPEECH_KEY": "<speech-key>",
     "AZURE_SPEECH_REGION": "<region>",
     "DEEPSEEK_API_KEY": "<deepseek-api-key>",
