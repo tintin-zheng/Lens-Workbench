@@ -122,7 +122,7 @@ export default function VoiceBorrowOrb({ processing, onTranscript, onError }: Pr
   const disabled = processing || phase === 'starting' || phase === 'stopping'
   const label = processing ? '正在生成借用清单' : phase === 'starting' ? '正在开启语音识别' : phase === 'stopping' ? '正在识别语音' : listening ? '停止语音并生成清单' : '开始语音快速借用'
 
-  return <button type="button" className={`voice-orb ${activePhase}`} onClick={listening ? stopListening : startListening} disabled={disabled} aria-label={label} aria-pressed={listening}>
+  return <button type="button" className={`voice-orb ${activePhase}`} data-guide-target="voice" onClick={listening ? stopListening : startListening} disabled={disabled} aria-label={label} aria-pressed={listening}>
     <span className="voice-orb-glow" aria-hidden="true" />
     <span className="voice-orb-core"><VoiceMark /></span>
     <span className="voice-orb-status" role="status">{label}</span>

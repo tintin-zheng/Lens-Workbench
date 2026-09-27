@@ -10,6 +10,7 @@ let memberSchemaReady = false
 async function ensureMemberSchema(db: Awaited<ReturnType<typeof getPool>>) {
   if (memberSchemaReady) return
   await db.request().query("IF COL_LENGTH('dbo.members', 'is_active') IS NULL ALTER TABLE dbo.members ADD is_active BIT NOT NULL CONSTRAINT DF_members_is_active DEFAULT 1")
+  await db.request().query("IF COL_LENGTH('dbo.members', 'onboarding_version') IS NULL ALTER TABLE dbo.members ADD onboarding_version INT NOT NULL CONSTRAINT DF_members_onboarding_version DEFAULT 0")
   memberSchemaReady = true
 }
 
@@ -42,6 +43,7 @@ const serverError = (context: InvocationContext, error: unknown) => {
   if (/invalid object name '(kits|kit_items|kit_borrow_records)'|invalid column name 'kit_borrow_record_id'/i.test(detail)) return json({ message: 'Kit 数据表尚未创建，请先执行 database/kits.sql' }, 500)
   if (/invalid column name 'quantity'|UX_borrow_records_active_equipment/i.test(detail)) return json({ message: '器材数量功能尚未完成数据库配置，请执行 database/equipment-quantity.sql' }, 500)
   if (/invalid column name 'is_active'|ALTER TABLE permission was denied|DF_members_is_active/i.test(detail)) return json({ message: '成员账户数据库升级尚未完成，请执行 database/member-accounts.sql' }, 500)
+  if (/invalid column name 'onboarding_version'|DF_members_onboarding_version/i.test(detail)) return json({ message: '新手引导数据库升级尚未完成，请执行 database/member-onboarding.sql' }, 500)
   if (detail === 'AI_NOT_CONFIGURED') return json({ message: 'AI 器材助手尚未配置模型 API，仍可继续手动借出器材' }, 503)
   if (detail === 'SPEECH_NOT_CONFIGURED') return json({ message: '语音识别尚未完成 Azure 配置，可以先使用文字输入' }, 503)
   if (/^AI_REQUEST_FAILED:401:/.test(detail)) return json({ message: 'AI 服务的 API Key 无法验证，请联系管理员检查配置' }, 502)
@@ -69,18 +71,26 @@ app.http('member-login', { methods: ['POST'], authLevel: 'anonymous', route: 'me
   if (!configured) {
     const legacy = await db.request().input('name', sql.NVarChar(100), cleanName).query('SELECT id, name FROM members WHERE name=@name')
     if (!legacy.recordset[0]) return json({ message: '该姓名尚未录入。请网站维护者先配置管理员账户' }, 404)
-    return json({ member: { ...legacy.recordset[0], isAdmin: false }, adminToken: null })
+    return json({ member: { ...legacy.recordset[0], isAdmin: false, onboardingVersion: 1 }, adminToken: null })
   }
   await ensureMemberSchema(db)
   if (isAdmin && !verifyAdminPassword(password ?? '') && !await verifiedAdminId(request, db)) return json({ message: '管理员密码不正确，请重新登录' }, 401)
-  let result = await db.request().input('name', sql.NVarChar(100), cleanName).query('SELECT id, name, is_active AS isActive FROM members WHERE name=@name')
+  let result = await db.request().input('name', sql.NVarChar(100), cleanName).query('SELECT id, name, is_active AS isActive, onboarding_version AS onboardingVersion FROM members WHERE name=@name')
   if (!result.recordset[0] && isAdmin) {
-    try { result = await db.request().input('name', sql.NVarChar(100), cleanName).query('INSERT INTO members (name, is_active) OUTPUT INSERTED.id, INSERTED.name, INSERTED.is_active AS isActive VALUES (@name, 1)') }
-    catch (error) { if (!(error instanceof sql.RequestError && error.number === 2627)) throw error; result = await db.request().input('name', sql.NVarChar(100), cleanName).query('SELECT id, name, is_active AS isActive FROM members WHERE name=@name') }
+    try { result = await db.request().input('name', sql.NVarChar(100), cleanName).query('INSERT INTO members (name, is_active) OUTPUT INSERTED.id, INSERTED.name, INSERTED.is_active AS isActive, INSERTED.onboarding_version AS onboardingVersion VALUES (@name, 1)') }
+    catch (error) { if (!(error instanceof sql.RequestError && error.number === 2627)) throw error; result = await db.request().input('name', sql.NVarChar(100), cleanName).query('SELECT id, name, is_active AS isActive, onboarding_version AS onboardingVersion FROM members WHERE name=@name') }
   }
   const member = result.recordset[0]
   if (!member || !member.isActive) return json({ message: '该姓名尚未录入或已停用，请联系管理员' }, 404)
-  return json({ member: { id: member.id, name: member.name, isAdmin }, adminToken: createSessionToken(member.id, member.name, isAdmin) })
+  return json({ member: { id: member.id, name: member.name, isAdmin, onboardingVersion: member.onboardingVersion }, adminToken: createSessionToken(member.id, member.name, isAdmin) })
+} catch (error) { return serverError(context, error) } } })
+
+protectedHttp('member-onboarding', { methods: ['POST'], authLevel: 'anonymous', route: 'members/onboarding', handler: async (request, context) => { try {
+  const session = sessionFromRequest(request)
+  if (!session) return json({ message: '请重新登录' }, 401)
+  const db = await getPool()
+  const result = await db.request().input('id', sql.Int, session.id).input('name', sql.NVarChar(100), session.name).query('UPDATE members SET onboarding_version=1 OUTPUT INSERTED.onboarding_version AS onboardingVersion WHERE id=@id AND name=@name AND is_active=1')
+  return result.recordset[0] ? json(result.recordset[0]) : json({ message: '账户已停用，请联系管理员' }, 403)
 } catch (error) { return serverError(context, error) } } })
 
 app.http('members', { methods: ['GET', 'POST'], authLevel: 'anonymous', route: 'members', handler: async (request, context) => { try {

@@ -1,5 +1,5 @@
 -- ZJE-Lens Azure SQL 初始化脚本。请在 Azure Portal 的 SQL 查询编辑器中执行一次。
-CREATE TABLE members (id INT IDENTITY(1,1) PRIMARY KEY, name NVARCHAR(100) NOT NULL UNIQUE, is_active BIT NOT NULL CONSTRAINT DF_members_is_active DEFAULT 1);
+CREATE TABLE members (id INT IDENTITY(1,1) PRIMARY KEY, name NVARCHAR(100) NOT NULL UNIQUE, is_active BIT NOT NULL CONSTRAINT DF_members_is_active DEFAULT 1, onboarding_version INT NOT NULL CONSTRAINT DF_members_onboarding_version DEFAULT 0);
 CREATE TABLE equipment (id INT IDENTITY(1,1) PRIMARY KEY, name NVARCHAR(200) NOT NULL, category NVARCHAR(100) NOT NULL CONSTRAINT DF_equipment_category DEFAULT N'其他', status VARCHAR(20) NOT NULL CONSTRAINT CK_equipment_status CHECK (status IN ('available','borrowed')), quantity INT NOT NULL CONSTRAINT DF_equipment_quantity DEFAULT 1 CONSTRAINT CK_equipment_quantity CHECK (quantity >= 1), image_url NVARCHAR(500) NULL, description NVARCHAR(500) NULL);
 CREATE TABLE borrow_records (id INT IDENTITY(1,1) PRIMARY KEY, equipment_id INT NOT NULL FOREIGN KEY REFERENCES equipment(id), member_id INT NOT NULL FOREIGN KEY REFERENCES members(id), borrow_time DATETIME2 NOT NULL, return_time DATETIME2 NULL);
 CREATE INDEX IX_borrow_records_active_equipment ON borrow_records(equipment_id) WHERE return_time IS NULL;
