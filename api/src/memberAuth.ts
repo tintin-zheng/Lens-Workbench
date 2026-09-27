@@ -23,7 +23,7 @@ export function createSessionToken(id: number, name: string, isAdmin: boolean) {
 
 export function sessionFromRequest(request: HttpRequest): { id: number; name: string; isAdmin: boolean } | null {
   if (!adminConfigured()) return null
-  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? ''
+  const token = request.headers.get('x-member-session') ?? request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? ''
   const parts = token.split('.')
   if (parts.length !== 2) return null
   const expected = Buffer.from(signature(parts[0]))
