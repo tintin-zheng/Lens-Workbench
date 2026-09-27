@@ -172,6 +172,7 @@ function EquipmentPage({ view, displayed, kits, currentUser, categoryFilter, his
 function IdentityPicker({ onRegistered }: { onRegistered: (result: MemberLogin) => void }) {
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
+  const [adminLogin, setAdminLogin] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   async function login(event: FormEvent) {
@@ -179,11 +180,11 @@ function IdentityPicker({ onRegistered }: { onRegistered: (result: MemberLogin) 
     const cleanName = name.trim()
     if (!realChineseNamePattern.test(cleanName)) { setError('请输入 2–6 个中文汉字'); return }
     setBusy(true); setError('')
-    try { const result = await loginMember(cleanName, password); await settleViewportAfterKeyboard(); onRegistered(result) }
+    try { const result = await loginMember(cleanName, adminLogin ? password : undefined); await settleViewportAfterKeyboard(); onRegistered(result) }
     catch (reason) { setError(reason instanceof Error ? reason.message : '登录失败，请稍后重试') }
     finally { setBusy(false) }
   }
-  return <main className="identity-page"><section className="identity-card"><img className="site-logo" src={logo} alt="ZJE-Lens" /><h1>输入你的姓名</h1><p>请输入管理员已录入的姓名。此设备会记住你。</p><form className="register-form single-login" onSubmit={login}><label htmlFor="new-member-name">姓名</label><input id="new-member-name" value={name} onChange={(event) => { setName(event.target.value); if (error) setError('') }} maxLength={6} placeholder="例如：张三" autoComplete="name" autoFocus /><label htmlFor="admin-password">管理员密码（普通成员无需填写）</label><input id="admin-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); if (error) setError('') }} autoComplete="current-password" placeholder="仅管理员填写" /><button disabled={busy}>{busy ? '登录中…' : '登录'}</button>{error && <p role="alert">{error}</p>}</form></section></main>
+  return <main className="identity-page"><section className="identity-card"><img className="site-logo" src={logo} alt="ZJE-Lens" /><h1>{adminLogin ? '管理员登录' : '输入你的姓名'}</h1><p>{adminLogin ? '请输入管理员姓名和密码。' : '请输入管理员已录入的姓名。此设备会记住你。'}</p><form className="register-form single-login" onSubmit={login}><label htmlFor="new-member-name">姓名</label><input id="new-member-name" value={name} onChange={(event) => { setName(event.target.value); if (error) setError('') }} maxLength={6} placeholder="例如：张三" autoComplete="name" autoFocus />{adminLogin && <><label htmlFor="admin-password">管理员密码</label><input id="admin-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); if (error) setError('') }} autoComplete="current-password" /></>}<button disabled={busy}>{busy ? '登录中…' : '登录'}</button>{error && <p role="alert">{error}</p>}</form></section><button className="identity-mode-link" type="button" onClick={() => { setAdminLogin((value) => !value); setPassword(''); setError('') }}>{adminLogin ? '普通成员登录' : '管理员登录'}</button></main>
 }
 
 function MemberManager({ onCreate, onDelete }: { onCreate: (name: string) => Promise<Member>; onDelete: (id: number) => Promise<void> }) {
