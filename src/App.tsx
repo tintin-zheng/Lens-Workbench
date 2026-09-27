@@ -145,7 +145,7 @@ function App() {
       </div>}
     </header>
     <nav className="primary-nav" aria-label="主导航">{primaryTabs.map((item) => <button key={item.key} data-guide-target={`nav-${item.key}`} className={primary === item.key ? 'selected' : ''} onClick={() => changeView(item.view)}><span className="primary-nav-icon"><PrimaryNavIcon tab={item.key} /></span><span>{item.label}</span></button>)}</nav>
-    {view === 'tasks' && <button className="task-fab" onClick={() => setTaskEditor('new')} aria-label="发布新任务" />}
+    {view === 'tasks' && <button className="task-fab" data-guide-target="task-fab" onClick={() => setTaskEditor('new')} aria-label="发布新任务" />}
     {primary === 'equipment' && !managing && <VoiceBorrowOrb processing={voiceProcessing} onTranscript={processVoiceTranscript} onError={message} />}
     {!managingMembers && secondaryTabs.length > 0 && <div className={`secondary-nav${primary === 'records' ? ' record-nav' : ''}`} aria-label="页面分类">{secondaryTabs.map((item) => <button key={item.key} className={view === item.key ? 'selected' : ''} onClick={() => changeView(item.key)}>{item.label}</button>)}{primary === 'records' && <div className="record-tools"><span>{loading ? '—' : view === 'history' ? history.length : tasks.length} 条</span><button className="record-export" disabled={loading || (view === 'history' ? history.length === 0 : tasks.length === 0)} onClick={view === 'history' ? exportBorrowHistory : exportTaskHistory}>导出 CSV</button></div>}</div>}
     {primary === 'equipment' && <div className="category-filters" aria-label="器材类别筛选">{categoryFilters.map((item) => <button key={item.key} className={categoryFilter === item.key ? 'selected' : ''} onClick={() => setCategoryFilter(item.key)}>{item.label}</button>)}</div>}
