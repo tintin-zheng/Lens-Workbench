@@ -89,6 +89,8 @@ h1 { margin:0; color:#37352f; font-family:'Noto Serif SC',Georgia,serif; font-si
 .view-content { position:relative; z-index:1; flex:1 0 auto; animation:viewEnter .22s cubic-bezier(.2,.75,.35,1) both; }
 .view-content:has(> .loading) { display:flex; min-height:0; flex-direction:column; }
 .view-content:has(> .loading) > .loading { flex:1 1 auto; justify-content:center; padding:0; }
+.view-content:has(> .empty:not(.compact-empty)) { display:flex; min-height:0; flex-direction:column; }
+.view-content > .empty:not(.compact-empty) { display:grid; flex:1 1 auto; place-items:center; padding:0; }
 .secondary-nav,.category-filters { position:relative; z-index:2; }
 .header-title h1 { animation:titleEnter .2s ease-out both; }
 .header-popover { transform-origin:top right; animation:popoverEnter .16s cubic-bezier(.2,.8,.3,1) both; }
