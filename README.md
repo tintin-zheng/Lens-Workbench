@@ -2,10 +2,10 @@
 
 一个面向熟人小团队的器材借还与任务协作网站，最初为 ZJE-Lens 摄影团队开发。
 
-它适合十几人到几十人的摄影团队、工作室、社团或实验室：成员之间互相认识，希望用尽量少的操作完成器材登记、借出、归还、任务参与和历史查询。项目没有密码和复杂权限系统，第一次输入姓名后会在当前浏览器记住身份。
+它适合十几人到几十人的摄影团队、工作室、社团或实验室：成员之间互相认识，希望用尽量少的操作完成器材登记、借出、归还、任务参与和历史查询。管理员先录入成员姓名；普通成员凭已录入的姓名登录，管理员还需输入密码。当前浏览器会记住普通成员身份。
 
 > [!IMPORTANT]
-> 这是一个低摩擦的熟人团队工具。API 默认允许匿名访问，知道网址的人可以注册姓名并进行操作。它不适合公开互联网服务、互不信任的用户群体或需要严格权限审计的高价值资产管理场景。
+> 这是一个低摩擦的熟人团队工具，不是强身份认证系统。配置 `ADMIN_MEMBER_NAMES` 与 `ADMIN_PASSWORD` 后，普通成员不能自行创建账户，业务 API 会校验服务端签发的会话；但普通成员仍凭姓名登录，知道他人姓名的人可能冒用其身份。因此它不适合互不信任的用户群体或需要严格权限审计的高价值资产管理场景。不要将网址和管理员密码公开传播。
 
 > [!TIP]
 > **学生可以先申请 [GitHub Student Developer Pack](https://education.github.com/pack/)。** GitHub Education 中的 Microsoft Azure 学生权益目前提供 25 项以上 Azure 云服务的免费使用资格和 **100 美元 Azure 额度**，且无需信用卡，适合用来学习并部署本项目。Azure 权益要求学生年满 18 岁；具体资格、额度、有效期和可用地区可能调整，请以申请页面显示的最新条款为准。
@@ -44,7 +44,7 @@ flowchart LR
   B -->|/api · JSON| C[Azure Functions<br/>TypeScript / Node.js]
   C -->|加密 SQL 连接| D[(Azure SQL Database)]
   C -.可选.-> F[Azure AI Speech]
-  C -.可选.-> G[Azure AI 模型]
+  C -.可选.-> G[DeepSeek API 或 Azure AI 模型]
   E[GitHub main 分支] -->|GitHub Actions| B
 ```
 
@@ -66,7 +66,7 @@ AI 助手只负责把自然语言转换成候选清单，不会听到一句话�
 | 后端 | Azure Functions v4、TypeScript、Node.js |
 | 数据库 | Azure SQL Database、`mssql` |
 | 语音识别（可选） | Azure AI Speech SDK |
-| 文字理解（可选） | Azure OpenAI 兼容的 Azure AI 模型部署 |
+| 文字理解（可选） | DeepSeek API，或 Azure OpenAI 兼容的 Azure AI 模型部署 |
 | 托管 | Azure Static Web Apps |
 | 自动部署 | GitHub Actions |
 
@@ -86,6 +86,7 @@ AI 助手只负责把自然语言转换成候选清单，不会听到一句话�
 ├── api/
 │   ├── src/index.ts             # Azure Functions 路由与业务逻辑
 │   ├── src/ai.ts                # AI 指令解析与 Speech 短期令牌
+│   ├── src/memberAuth.ts        # 成员会话与管理员鉴权
 │   ├── src/database.ts          # Azure SQL 连接池
 │   └── local.settings.json.example
 ├── database/
@@ -101,7 +102,7 @@ AI 助手只负责把自然语言转换成候选清单，不会听到一句话�
 
 ## 本地体验
 
-需要 Node.js 20 或更高版本。
+需要 Node.js 20.19+ 或 22.12+（Vite 8 的版本要求）；推荐使用当前 LTS 版本。
 
 ```bash
 git clone https://github.com/tintin-zheng/equipment-manager.git
@@ -112,7 +113,7 @@ npm run dev
 
 打开 `http://localhost:5173`。
 
-本地开发默认使用 `src/mockApi.ts`，不需要 Azure 账号或数据库，可以直接体验注册身份、借出、归还、Kit、任务和快速借用的文字清单。模拟借还数据在刷新页面后会重置，浏览器记住的身份仍会保留。语音输入必须连接本地 Functions 并配置 Azure Speech；没有配置时可以继续使用文字输入或普通借出按钮。
+本地开发默认使用 `src/mockApi.ts`，不需要 Azure 账号或数据库。可以用模拟数据中已有的姓名体验登录、借出、归还、Kit、任务和快速借用的文字清单；管理员账户还需要模拟管理员密码（见 `src/mockApi.ts`，仅用于本地演示，不是线上密码）。模拟借还数据在刷新页面后会重置，浏览器记住的身份仍会保留。语音输入必须连接本地 Functions 并配置 Azure Speech；没有配置时可以继续使用文字输入或普通借出按钮。
 
 提交前可以运行：
 
@@ -243,7 +244,7 @@ Server=tcp:<服务器名>.database.windows.net,1433;Initial Catalog=<数据库�
 
 ### 5. 配置 AI 快速借用（可选）
 
-不配置本节时，器材、Kit、任务、普通借还和记录功能仍然可以正常使用；只有语音识别与 AI 文字解析会显示“尚未完成 Azure 配置”。
+不配置本节时，器材、Kit、任务、普通借还和记录功能仍然可以正常使用；只有语音识别与 AI 文字解析不可用。
 
 AI 快速借用使用两个独立的能力：
 
@@ -264,14 +265,14 @@ AI 快速借用使用两个独立的能力：
 
 如果已经拥有 Azure OpenAI 配额，也可以不设置 `DEEPSEEK_API_KEY`，继续使用 `AZURE_AI_ENDPOINT`、`AZURE_AI_API_KEY`、`AZURE_AI_DEPLOYMENT` 和可选的 `AZURE_OPENAI_API_VERSION`。两套配置同时存在时优先使用 DeepSeek。
 
-保存并应用设置后重新部署或重启应用。打开“器材”页面右下角的麦克风按钮，依次测试：
+保存并应用设置后，打开“器材”页面右下角的语音球，依次测试：
 
 - 文字：`借一台 Sony A7 IV 和两块电池`；
 - 语音：允许浏览器使用麦克风，说完后等待清单出现；
 - 调整数量或删除误识别项目，再点击“确认借出”；
 - 故意请求超过库存的数量，确认系统会阻止整批操作。
 
-DeepSeek 模型按其开放平台公布的 Token 单价计费，Speech 按 Azure 账号及区域的实际定价计费。建议先少量充值并在对应平台设置余额提醒。由于本项目没有登录系统，若将网址公开传播，匿名访问者可能消耗 AI 额度；它更适合只在熟人团队内分享。
+DeepSeek 模型按其开放平台公布的 Token 单价计费，Speech 按 Azure 账号及区域的实际定价计费。建议先少量充值并在对应平台设置余额提醒。虽然业务 API 校验成员会话，普通成员仍可被知道其姓名的人冒用；分享范围和 AI 额度都应按熟人团队使用来控制。
 
 ### 6. 配置 GitHub 部署令牌
 
@@ -326,11 +327,12 @@ https://<随机名称>.azurestaticapps.net
 
 依次检查：
 
-1. 打开网站，输入一个中文姓名。
-2. 录入一件测试器材并尝试借出、归还。
-3. 打开 `https://<你的地址>/api/members`，应看到 JSON 成员列表。
-4. 刷新网页，确认浏览器仍记得当前姓名。
-5. 在另一个浏览器中访问，确认器材状态来自数据库而不是当前设备。
+1. 确认 `SQL_CONNECTION_STRING`、`ADMIN_MEMBER_NAMES` 和 `ADMIN_PASSWORD` 均已保存。打开网站，点击登录页的“管理员登录”，输入配置中的管理员姓名和密码；首次成功登录会创建该管理员账户。
+2. 进入“我的 → 账户管理”，录入一个普通成员姓名。退出后用该姓名登录，确认未录入的姓名不能自行注册。
+3. 录入一件测试器材，借出后再归还，确认库存和借还记录随之变化。
+4. 刷新网页，确认当前浏览器仍记得普通成员身份；在另一个浏览器中登录已录入的姓名，确认器材状态来自数据库而不是当前设备。
+
+`/api/members` 是管理员接口，直接在浏览器地址栏打开不会附带管理会话，不能再用它作为公开的部署探针。若页面能打开但业务请求失败，请在浏览器开发者工具的 Network 中查看 `/api/*` 请求状态，同时优先检查下列配置。
 
 如果网页能打开但 API 报错，优先检查：
 
@@ -377,6 +379,8 @@ Logo 尺寸由 [`src/App.css`](src/App.css) 中的 `.site-logo` 控制。如果�
 | --- | --- | --- |
 | `VITE_USE_MOCK_API` | 前端构建 | `false` 时请求真实 `/api`；本地未设置时使用模拟数据 |
 | `SQL_CONNECTION_STRING` | Azure Functions | Azure SQL 连接字符串，只保存在 Azure 应用设置或本地未提交的配置文件中 |
+| `ADMIN_MEMBER_NAMES` | Azure Functions | 管理员中文姓名，多个姓名以英文逗号分隔；须与 `ADMIN_PASSWORD` 一同配置 |
+| `ADMIN_PASSWORD` | Azure Functions | 管理员共用密码，至少 8 个字符；只保存在服务端 |
 | `AZURE_SPEECH_KEY` | Azure Functions | 可选，Speech 密钥；不会发送到前端 |
 | `AZURE_SPEECH_REGION` | Azure Functions | 可选，Speech 资源所在区域 |
 | `DEEPSEEK_API_KEY` | Azure Functions | 可选，推荐的 AI 文字解析密钥；不会发送到前端 |
@@ -429,4 +433,4 @@ GitHub Actions 会自动完成安装依赖、构建 React、构建 Azure Functio
 
 ## License
 
-当前仓库未声明开源许可证。你可以 Fork 并用于自己的学习和小型团队内部部署；如果准备公开分发或用于商业项目，请先联系仓库维护者确认授权。
+当前仓库没有 `LICENSE` 文件，代码公开可见不等于已授予复制、修改、部署或再分发的许可。GitHub 平台允许的浏览和 Fork 不代表获得了仓库以外的使用授权。如果你希望将本项目部署给自己的团队，或公开分发、用于商业项目，请先联系仓库维护者取得许可；仓库维护者若希望允许他人直接复用，应明确选择并添加许可证。
