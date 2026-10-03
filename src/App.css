@@ -188,3 +188,50 @@ h1 { margin:0; color:#37352f; font-family:'Noto Serif SC',Georgia,serif; font-si
   .voice-footer { background:#232321; }
 }
 @media (prefers-color-scheme:dark) { .member-manager > p { color:#aaa9a3; }.member-add-form input { color:#efefeb; background:#242423; border-color:#383835; }.member-add-form button { background:#efefeb; color:#191918; }.member-list { border-color:#383835; }.member-list > div + div { border-color:#383835; }.identity-mode-link { color:#b2b1ab; }.identity-mode-link:hover { color:#f0f0ec; }.member-delete-dialog { color:#efefeb; background:#242423; border-color:#383835; }.member-delete-dialog p { color:#aaa9a3; }.member-delete-actions button:not(.danger) { color:#efefeb; background:#242423; border-color:#555550; } }
+/* Shared with the mini program: compact, text-centered sliding filters. */
+.secondary-nav .status-tabs { position:relative; display:flex; flex:0 0 auto; height:28px; gap:4px; }
+.secondary-nav .status-slider { position:absolute; z-index:0; top:0; left:0; height:100%; width:var(--slider-width,44px); border-radius:4px; background:#37352f; transform:translateX(var(--slider-x,0px)); pointer-events:none; opacity:0; }
+.secondary-nav .status-tabs[data-measured="true"] .status-slider { opacity:1; }
+.secondary-nav .status-tabs[data-animate="true"] .status-slider { transition:transform .26s cubic-bezier(.22,.8,.25,1),width .26s cubic-bezier(.22,.8,.25,1); }
+.secondary-nav .status-tab { position:relative; z-index:1; display:flex; flex:0 0 auto; width:44px; height:28px; align-items:center; justify-content:center; margin:0; padding:0; border:0; border-radius:4px; color:#787774; background:transparent; font-size:12px; font-weight:500; line-height:1; }
+.secondary-nav .status-tab:last-child:nth-child(4) { width:56px; }
+.secondary-nav .status-tabs-wide .status-tab { width:68px; }
+.secondary-nav .status-tab span { display:block; line-height:16px; white-space:nowrap; text-align:center; }
+.secondary-nav .status-tab:hover { background:transparent; }
+.secondary-nav .status-tab.selected { color:#fff; background:transparent; }
+.secondary-nav .status-tabs:not([data-measured="true"]) .status-tab.selected { background:#37352f; }
+.secondary-nav .status-tab:active { transform:none; }
+.secondary-nav .status-tab:focus-visible { outline:2px solid #2383e2; outline-offset:3px; }
+
+/* Only the form body scrolls; the fixed backdrop never follows the keyboard. */
+.form-dialog-layer { position:fixed; z-index:10; inset:0; }
+.form-dialog-dimmer { position:absolute; inset:0; background:rgba(55,53,47,.28); }
+.form-dialog-backdrop { position:absolute; right:0; left:0; display:flex; align-items:center; justify-content:center; padding:18px; overflow:hidden; }
+.form-dialog-backdrop .equipment-form { display:flex; flex-direction:column; width:min(100%,420px); height:auto; max-height:100%; padding:24px; border-radius:14px; overflow:hidden; }
+.form-dialog-backdrop .form-title { flex:none; margin:0 0 20px; }
+.form-dialog-backdrop .form-title h2 { font-size:20px; line-height:24px; }
+.form-dialog-backdrop .form-title button { display:flex; align-items:center; justify-content:center; width:28px; height:28px; padding:0; font-size:28px; line-height:24px; }
+.form-dialog-backdrop .form-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
+.form-dialog-backdrop .form-body::-webkit-scrollbar { display:none; }
+.form-dialog-backdrop .equipment-form label { margin:14px 0 0; font-size:13px; font-weight:400; line-height:18px; }
+.form-dialog-backdrop .form-body > label:first-child { margin-top:0; }
+.form-dialog-backdrop .equipment-form input,.form-dialog-backdrop .equipment-form select,.form-dialog-backdrop .equipment-form textarea { min-height:42px; margin-top:6px; padding:10px 12px; border-radius:8px; font-size:14px; line-height:20px; }
+.form-dialog-backdrop .equipment-form textarea { height:90px; min-height:90px; resize:none; }
+.form-dialog-backdrop .kit-form textarea { height:70px; min-height:70px; }
+.form-dialog-backdrop .submit-equipment { display:flex; flex:none; align-items:center; justify-content:center; width:100%; height:48px; min-height:48px; margin-top:20px; padding:0 16px; border-radius:8px; font-size:16px; font-weight:500; line-height:1; }
+.form-dialog-backdrop .form-error { flex:none; margin-top:12px; }
+.form-dialog-backdrop .kit-form { max-height:min(680px,100%); }
+.form-dialog-backdrop .kit-form fieldset { display:block; margin:14px 0 0; overflow:visible; }
+.form-dialog-backdrop .kit-equipment-list { padding:0; overflow:visible; scrollbar-gutter:auto; }
+.form-dialog-backdrop .equipment-form .kit-equipment-list > label { min-height:48px; margin:0; padding:10px 0; font-size:13px; }
+.form-dialog-backdrop .equipment-form .kit-equipment-list > label input { width:20px; height:20px; min-height:20px; flex-basis:20px; border-radius:5px; accent-color:#37352f; }
+.form-dialog-backdrop .equipment-form .kit-equipment-list > label span { flex-wrap:wrap; gap:4px 10px; }
+.form-dialog-backdrop .equipment-form .kit-equipment-list > label small { font-size:11px; }
+@media (prefers-color-scheme:dark) {
+  .form-dialog-dimmer { background:rgba(0,0,0,.62); }
+  .secondary-nav .status-slider,.secondary-nav .status-tabs:not([data-measured="true"]) .status-tab.selected { background:#efefeb; }
+  .secondary-nav .status-tab.selected { color:#1d1d1b; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .secondary-nav .status-tabs[data-animate="true"] .status-slider { transition:none; }
+}
