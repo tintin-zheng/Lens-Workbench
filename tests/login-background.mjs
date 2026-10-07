@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict'
+const { chromium } = await import(process.env.UI_ALIGNMENT_PLAYWRIGHT || 'playwright')
+const browser = await chromium.launch({ headless:true, executablePath:process.env.UI_ALIGNMENT_CHROME || undefined })
+try {
+  for (const width of [375, 1194]) for (const colorScheme of ['light', 'dark']) {
+    const page = await browser.newPage({ viewport:{ width, height:800 }, colorScheme })
+    await page.goto(process.env.LOGIN_TEST_URL || 'http://127.0.0.1:5176')
+    await page.getByRole('heading', { name:'你的姓名', exact:true }).waitFor()
+    const video = page.locator('video')
+    await page.waitForFunction(() => document.querySelector('video')?.currentTime > 0)
+    const info = await video.evaluate(el => ({ src:el.getAttribute('src'), muted:el.muted, loop:el.loop, inline:el.playsInline, ready:el.dataset.ready }))
+    assert.ok(info.src.includes(colorScheme === 'dark' ? 'night-smooth' : 'beach-four'))
+    assert.ok(info.muted && info.loop && info.inline); assert.equal(info.ready, 'true')
+    assert.equal(await page.locator('.identity-card .site-logo').evaluate(el => getComputedStyle(el).filter), 'none')
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    await page.getByRole('button', { name:'管理员登录', exact:true }).click()
+    await page.getByRole('heading', { name:'管理员登录', exact:true }).waitFor()
+    assert.equal(await page.locator('input[type=password]').count(), 1)
+    await page.emulateMedia({ colorScheme:colorScheme === 'light' ? 'dark' : 'light' })
+    await page.waitForFunction(expected => document.querySelector('video')?.src.includes(expected), colorScheme === 'light' ? 'night-smooth' : 'beach-four')
+    if (process.env.LOGIN_TEST_SCREENSHOTS) await page.screenshot({ path:`${process.env.LOGIN_TEST_SCREENSHOTS}/login-${width}-${colorScheme}.png` })
+    await page.close()
+  }
+  const page = await browser.newPage()
+  await page.route('**/*.mp4', route => route.abort())
+  await page.goto(process.env.LOGIN_TEST_URL || 'http://127.0.0.1:5176')
+  await page.getByRole('heading', { name:'你的姓名', exact:true }).waitFor()
+  assert.equal(await page.locator('.login-cover').evaluate(el => el.complete && el.naturalWidth > 0), true)
+  assert.equal(await page.getByRole('button', { name:'登录', exact:true }).isEnabled(), true)
+  console.log('PASS: phone/desktop, light/dark video playback, live theme switch, original orange-white logo, admin form and offline video fallback')
+} finally { await browser.close() }

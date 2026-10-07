@@ -7,7 +7,10 @@ import VoiceBorrowOrb from './VoiceBorrowOrb'
 import SlidingTabs from './SlidingTabs'
 import FormDialogBackdrop from './FormDialogBackdrop'
 import logo from './assets/zje-lens-logo.png'
+import loginLogo from './assets/login-logo.png'
+import LoginBackground from './LoginBackground'
 import './App.css'
+import './LoginBackground.css'
 
 type View = 'all' | 'available' | 'borrowed' | 'mine' | 'my-tasks' | 'tasks' | 'history' | 'task-records'
 type PrimaryTab = 'equipment' | 'tasks' | 'records' | 'mine'
@@ -187,7 +190,7 @@ function IdentityPicker({ onRegistered }: { onRegistered: (result: MemberLogin) 
     catch (reason) { setError(reason instanceof Error ? reason.message : '登录失败，请稍后重试') }
     finally { setBusy(false) }
   }
-  return <main className="identity-page"><section className="identity-card"><img className="site-logo" src={logo} alt="ZJE-Lens" /><h1>{adminLogin ? '管理员登录' : '你的姓名'}</h1>{adminLogin && <p>请输入管理员姓名和密码。</p>}<form className="register-form single-login" onSubmit={login}><label htmlFor="new-member-name">姓名</label><input id="new-member-name" value={name} onChange={(event) => { setName(event.target.value); if (error) setError('') }} maxLength={6} placeholder="例如：张三" autoComplete="name" autoFocus />{adminLogin && <><label htmlFor="admin-password">管理员密码</label><input id="admin-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); if (error) setError('') }} autoComplete="current-password" /></>}<button disabled={busy}>{busy ? '登录中…' : '登录'}</button>{error && <p role="alert">{error}</p>}</form><button className="identity-mode-link" type="button" onClick={() => { setAdminLogin((value) => !value); setPassword(''); setError('') }}>{adminLogin ? '普通成员登录' : '管理员登录'}</button></section></main>
+  return <main className="identity-page video-login"><LoginBackground /><section className="identity-card"><img className="site-logo" src={loginLogo} alt="ZJE-Lens" /><h1>{adminLogin ? '管理员登录' : '你的姓名'}</h1>{adminLogin && <p>请输入管理员姓名和密码。</p>}<form className="register-form single-login" onSubmit={login}><label htmlFor="new-member-name">姓名</label><input id="new-member-name" value={name} onChange={(event) => { setName(event.target.value); if (error) setError('') }} maxLength={6} placeholder="例如：张三" autoComplete="name" />{adminLogin && <><label htmlFor="admin-password">管理员密码</label><input id="admin-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); if (error) setError('') }} autoComplete="current-password" /></>}<button disabled={busy}>{busy ? '登录中…' : '登录'}</button>{error && <p role="alert">{error}</p>}</form><button className="identity-mode-link" type="button" onClick={() => { setAdminLogin((value) => !value); setPassword(''); setError('') }}>{adminLogin ? '普通成员登录' : '管理员登录'}</button></section></main>
 }
 
 function MemberManager({ onCreate, onDelete }: { onCreate: (name: string) => Promise<Member>; onDelete: (id: number) => Promise<void> }) {
