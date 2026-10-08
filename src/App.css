@@ -235,3 +235,21 @@ h1 { margin:0; color:#37352f; font-family:'Noto Serif SC',Georgia,serif; font-si
 @media (prefers-reduced-motion:reduce) {
   .secondary-nav .status-tabs[data-animate="true"] .status-slider { transition:none; }
 }
+
+/* A single persistent slider shares the four equal button columns. */
+.primary-nav-slider-track { display:none; }
+@media (max-width:620px) {
+  .primary-nav { height:61px; box-sizing:border-box; }
+  .primary-nav-slider-track { position:absolute; inset:6px; display:block; pointer-events:none; }
+  .primary-nav-slider { display:block; width:25%; height:100%; border-radius:9px; background:#37352f; transition:transform .28s cubic-bezier(.22,.68,0,1); }
+  .primary-nav button { z-index:1; min-width:0; padding:0; gap:3px; font-size:11px; line-height:13px; transition:color .18s ease; }
+  .primary-nav button > span:last-child { display:block; text-align:center; }
+  .primary-nav button.selected { color:#fff; background:transparent; }
+}
+@media (max-width:620px) and (prefers-color-scheme:dark) {
+  .primary-nav .primary-nav-slider { background:#efefeb; }
+  .primary-nav button.selected { color:#1d1d1b; background:transparent; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .primary-nav .primary-nav-slider,.primary-nav button { transition:none; }
+}
